@@ -59,7 +59,6 @@
                 <!-- Item 1: Stats Hub -->
                 <a href="{{ route('dashboard.stats') }}" class="group flex flex-col items-center text-center p-4 rounded-xl hover:bg-slate-800/40 border border-transparent hover:border-slate-700/50 transition-all duration-200">
                     <div class="w-12 h-12 rounded-full border border-zinc-700 flex items-center justify-center text-zinc-400 group-hover:text-emerald-400 group-hover:border-emerald-500/50 transition-colors">
-                        <!-- Dashboard Grid Icon -->
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v4a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v4a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v4a2 2 0 01-2 2H6a2 2 0 01-2-2v-4zM14 16a2 2 0 012-2h2a2 2 0 012 2v4a2 2 0 01-2 2h-2a2 2 0 01-2-2v-4z" />
                         </svg>
@@ -68,45 +67,45 @@
                 </a>
 
                 <!-- Item 2: COC Management -->
-                <a href="{{ route('dashboard.coc') }}" class="flex flex-col items-center group p-4 rounded-lg bg-zinc-900/20 hover:bg-zinc-900/40 border border-transparent hover:border-emerald-500/30 transition-all duration-200">
-                    <div class="w-12 h-12 rounded-full border border-zinc-600 group-hover:border-emerald-400 group-hover:bg-emerald-500/10 flex items-center justify-center text-zinc-300 group-hover:text-emerald-400 shadow-md transition-all">
+                <a href="{{ route('dashboard.coc') }}" class="group flex flex-col items-center text-center p-4 rounded-xl hover:bg-slate-800/40 border border-transparent hover:border-slate-700/50 transition-all duration-200">
+                    <div class="w-12 h-12 rounded-full border border-zinc-700 flex items-center justify-center text-zinc-400 group-hover:text-emerald-400 group-hover:border-emerald-500/50 transition-colors">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
                     </div>
-                    <span class="text-[11px] text-zinc-400 group-hover:text-white uppercase font-bold tracking-wider mt-3 transition-colors text-center">COC Management</span>
+                    <span class="mt-3 text-[11px] font-bold tracking-wider text-zinc-400 group-hover:text-zinc-200 uppercase">Coc Management</span>
                 </a>
 
                 <!-- Item 3: CTPL Issuance -->
-                <a href="#" class="flex flex-col items-center group p-4 rounded-lg bg-zinc-900/20 hover:bg-zinc-900/40 border border-transparent hover:border-emerald-500/30 transition-all duration-200">
-                    <div class="w-12 h-12 rounded-full border border-zinc-600 group-hover:border-emerald-400 group-hover:bg-emerald-500/10 flex items-center justify-center text-zinc-300 group-hover:text-emerald-400 shadow-md transition-all">
+                                <a href="#" class="group flex flex-col items-center text-center p-4 rounded-xl hover:bg-slate-800/40 border border-transparent hover:border-slate-700/50 transition-all duration-200">
+                    <div class="w-12 h-12 rounded-full border border-zinc-700 flex items-center justify-center text-zinc-400 group-hover:text-emerald-400 group-hover:border-emerald-500/50 transition-colors">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path></svg>
                     </div>
-                    <span class="text-[11px] text-zinc-400 group-hover:text-white uppercase font-bold tracking-wider mt-3 transition-colors text-center">CTPL Issuance</span>
+                    <span class="mt-3 text-[11px] font-bold tracking-wider text-zinc-400 group-hover:text-zinc-200 uppercase">CTPL ISSUANCE</span>
                 </a>
 
                 <!-- Item 4: Saved Transactions -->
-                <a href="#" class="flex flex-col items-center group p-4 rounded-lg bg-zinc-900/20 hover:bg-zinc-900/40 border border-transparent hover:border-emerald-500/30 transition-all duration-200">
-                    <div class="w-12 h-12 rounded-full border border-zinc-600 group-hover:border-emerald-400 group-hover:bg-emerald-500/10 flex items-center justify-center text-zinc-300 group-hover:text-emerald-400 shadow-md transition-all">
+                <a href="#" class="group flex flex-col items-center text-center p-4 rounded-xl hover:bg-slate-800/40 border border-transparent hover:border-slate-700/50 transition-all duration-200">
+                    <div class="w-12 h-12 rounded-full border border-zinc-700 flex items-center justify-center text-zinc-400 group-hover:text-emerald-400 group-hover:border-emerald-500/50 transition-colors">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
                     </div>
-                    <span class="text-[11px] text-zinc-400 group-hover:text-white uppercase font-bold tracking-wider mt-3 transition-colors text-center">Transactions</span>
+                    <span class="mt-3 text-[11px] font-bold tracking-wider text-zinc-400 group-hover:text-zinc-200 uppercase">Transactions</span>
                 </a>
 
                 <!-- Item 5: Comprehensive -->
-                <a href="#" class="flex flex-col items-center group p-4 rounded-lg bg-zinc-900/20 hover:bg-zinc-900/40 border border-transparent hover:border-emerald-500/30 transition-all duration-200">
-                    <div class="w-12 h-12 rounded-full border border-zinc-600 group-hover:border-emerald-400 group-hover:bg-emerald-500/10 flex items-center justify-center text-zinc-300 group-hover:text-emerald-400 shadow-md transition-all">
+                <a href="#" class="group flex flex-col items-center text-center p-4 rounded-xl hover:bg-slate-800/40 border border-transparent hover:border-slate-700/50 transition-all duration-200">
+                    <div class="w-12 h-12 rounded-full border border-zinc-700 flex items-center justify-center text-zinc-400 group-hover:text-emerald-400 group-hover:border-emerald-500/50 transition-colors">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path></svg>
                     </div>
-                    <span class="text-[11px] text-zinc-400 group-hover:text-white uppercase font-bold tracking-wider mt-3 transition-colors text-center">Comprehensive</span>
+                    <span class="mt-3 text-[11px] font-bold tracking-wider text-zinc-400 group-hover:text-zinc-200 uppercase">Comprehensive</span>
                 </a>
 
                 <!-- Item 6: Profile Account Settings -->
-                <a href="{{ route('dashboard.profile') }}" class="flex flex-col items-center group p-4 rounded-lg bg-zinc-900/20 hover:bg-zinc-900/40 border border-transparent hover:border-emerald-500/30 transition-all duration-200">
-                    <div class="w-12 h-12 rounded-full border border-zinc-600 group-hover:border-emerald-400 group-hover:bg-emerald-500/10 flex items-center justify-center text-zinc-300 group-hover:text-emerald-400 shadow-md transition-all">
+                <a href="{{ route('dashboard.profile') }}" class="group flex flex-col items-center text-center p-4 rounded-xl hover:bg-slate-800/40 border border-transparent hover:border-slate-700/50 transition-all duration-200">
+                    <div class="w-12 h-12 rounded-full border border-zinc-700 flex items-center justify-center text-zinc-400 group-hover:text-emerald-400 group-hover:border-emerald-500/50 transition-colors">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
                         </svg>
                     </div>
-                    <span class="text-[11px] text-zinc-400 group-hover:text-white uppercase font-bold tracking-wider mt-3 transition-colors text-center">Profile Info</span>
+                    <span class="mt-3 text-[11px] font-bold tracking-wider text-zinc-400 group-hover:text-zinc-200 uppercase">Profile Info</span>
                 </a>
 
             </div>
