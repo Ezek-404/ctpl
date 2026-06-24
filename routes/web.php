@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\CocController;
 use Illuminate\Support\Facades\Route;
 
@@ -23,5 +24,6 @@ Route::middleware(['auth', 'prevent-back-history'])->group(function () {
     Route::get('/coc', [CocController::class, 'index'])->name('cocs.index');
     Route::post('/coc', [CocController::class, 'store'])->name('coc.store');
     Route::delete('/coc/{id}', [CocController::class, 'destroy'])->name('coc.destroy');
-
+    Route::get('/profile', [ProfileController::class, 'index'])->name('dashboard.profile');
+    Route::put('/profile/update', [ProfileController::class, 'update'])->name('profile.update');
 });

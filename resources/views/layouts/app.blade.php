@@ -19,16 +19,25 @@
             }
         }
     </script>
+
 </head>
 <body class="w-full min-h-screen bg-[#111625] text-zinc-300 font-sans antialiased select-none overflow-x-hidden relative flex flex-col items-center p-6 selection:bg-emerald-500 selection:text-white"
       style="background-image: linear-gradient(to bottom, rgba(30, 41, 59, 0.92), rgba(15, 23, 42, 0.95)), url('https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?q=80&w=2070'); background-size: cover; background-position: center; background-repeat: no-repeat;">
 
-    <div class="absolute top-6 left-6 right-6 z-50 flex items-center justify-between pointer-events-none">
-        <div class="pointer-events-auto">
+    <div id="main-navigation" class="absolute top-6 left-6 right-6 z-50 grid grid-cols-3 items-center pointer-events-none">
+        
+        <div class="pointer-events-auto justify-self-start">
             @yield('back_button')
         </div>
 
-        <div class="pointer-events-auto">
+        <div class="pointer-events-auto justify-self-center">
+            <h1 class="font-black text-lg uppercase tracking-[0.2em] flex gap-2">
+                <span class="text-white">@yield('title_part1', 'ALPHA')</span>
+                <span class="text-[#34d399]">@yield('title_part2', 'CTPL')</span>
+            </h1>
+        </div>
+
+        <div class="pointer-events-auto justify-self-end">
             <form id="logout-form" action="{{ route('logout') }}" method="POST" class="m-0 p-0">
                 @csrf
                 <button type="submit" 

@@ -12,42 +12,23 @@ class CocController extends Controller
     {
         $query = $request->input('search');
 
+        // I-query ang database gamit ang search o kunin lahat
+        $cocsQuery = Coc::query();
+
+        if ($query) {
+            $cocsQuery->where('coc_no', 'LIKE', "%{$query}%")
+                    ->orWhere('coc_type', 'LIKE', "%{$query}%");
+        }
+
+        // Kung AJAX request, ibalik ang HTML partial
         if ($request->ajax()) {
-            // Mag-filter gamit ang query
-            $cocs = Coc::where('coc_no', 'LIKE', "%{$query}%")
-                        ->orWhere('coc_type', 'LIKE', "%{$query}%")
-                        ->get();
-
-            $html = '';
-            if ($cocs->count() > 0) {
-                foreach ($cocs as $coc) {
-                    $statusClass = $coc->coc_status === 'Used' ? 'bg-emerald-950/40 text-emerald-400 border border-emerald-500/20' : 'bg-zinc-900 text-zinc-400 border border-zinc-700/30';
-                    
-                    $html .= "<tr class='hover:bg-zinc-900/20 transition-colors'>
-                        <td class='px-6 py-3.5 text-xs font-medium text-zinc-500'>{$coc->coc_id}</td>
-                        <td class='px-6 py-3.5 text-xs font-bold text-zinc-200 tracking-wide'>{$coc->coc_no}</td>
-                        <td class='px-6 py-3.5 text-xs font-semibold text-zinc-400'>{$coc->coc_type}</td>
-                        <td class='px-6 py-3.5 text-xs'>
-                            <span class='inline-flex items-center px-2 py-0.5 rounded text-[9px] font-bold tracking-wider uppercase {$statusClass}'>
-                                {$coc->coc_status}
-                            </span>
-                        </td>
-                        <td class='px-6 py-3.5 text-xs font-medium text-zinc-400'>{$coc->created_at}</td>
-                    </tr>";
-                }
-            } else {
-                $html .= "<tr>
-                    <td colspan='5' class='px-6 py-8 text-center text-xs text-zinc-500 uppercase tracking-widest'>
-                        No Certificate Logs Found in Database Registry
-                    </td>
-                </tr>";
-            }
-
+            $cocs = $cocsQuery->latest()->get(); // Kunin lahat ng matching
+            $html = view('partials.coc_table_rows', compact('cocs'))->render();
             return response()->json(['html' => $html]);
         }
 
-        // Default view loading standard pagination flow 
-        $cocs = Coc::latest()->paginate(15);
+        // Default: Paginate para sa main page load
+        $cocs = $cocsQuery->latest()->paginate(15);
         return view('coc', compact('cocs'));
     }
 
@@ -55,20 +36,29 @@ class CocController extends Controller
     {
         $request->validate([
             'start_series' => 'required|numeric',
-            'end_series' => 'required|numeric|gte:start_series',
+            'end_series' => 'required|numeric|gte:start_series', 
             'coc_type' => 'required|in:MC,TC,PC,CV',
+        ], [
+            'end_series.gte' => 'The end series must be greater than or equal to the start series.',
         ]);
 
-        // Loop para i-create ang bawat record sa series
-        for ($i = $request->start_series; $i <= $request->end_series; $i++) {
+        $series = range($request->start_series, $request->end_series);
+        $totalAdded = count($series);
+
+        // Check for duplicates
+        if (\App\Models\Coc::whereIn('coc_no', $series)->exists()) {
+            return redirect()->back()->withErrors(['error' => 'One or more COC numbers already exist in the database.']);
+        }
+
+        foreach ($series as $number) {
             \App\Models\Coc::create([
-                'coc_no' => $i,
+                'coc_no' => $number,
                 'coc_type' => $request->coc_type,
                 'coc_status' => 'Available',
             ]);
         }
 
-        return redirect()->back()->with('success', 'Series added successfully!');
+        return redirect()->back()->with('success', "Success! {$totalAdded} COC series have been added.");
     }
 
     public function destroy($id)
