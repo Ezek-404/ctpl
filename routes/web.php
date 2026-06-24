@@ -4,6 +4,7 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\CocController;
+use App\Http\Controllers\CtplIssuanceController;
 use Illuminate\Support\Facades\Route;
 
 // Guest Routes (Accessible only if NOT logged in)
@@ -26,4 +27,6 @@ Route::middleware(['auth', 'prevent-back-history'])->group(function () {
     Route::delete('/coc/{id}', [CocController::class, 'destroy'])->name('coc.destroy');
     Route::get('/profile', [ProfileController::class, 'index'])->name('dashboard.profile');
     Route::put('/profile/update', [ProfileController::class, 'update'])->name('profile.update');
+    Route::get('/dashboard/ctpl-issuance', [CtplIssuanceController::class, 'index'])->name('dashboard.ctpl-issuance');
+    Route::post('/dashboard/ctpl-issuance', [CtplIssuanceController::class, 'store'])->name('ctpl.store');
 });
