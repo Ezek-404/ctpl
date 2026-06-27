@@ -30,4 +30,5 @@ Route::middleware(['auth', 'prevent-back-history'])->group(function () {
     Route::get('/dashboard/ctpl-issuance', [CtplIssuanceController::class, 'index'])->name('dashboard.ctpl-issuance');
     Route::get('/ctpl/check-coc', [CtplIssuanceController::class, 'checkCoc'])->name('ctpl.check-coc');
     Route::post('/dashboard/ctpl-issuance', [CtplIssuanceController::class, 'store'])->name('ctpl.store');
+Route::get('/ctpl/get-vehicle-details', [App\Http\Controllers\CtplIssuanceController::class, 'getVehicleDetails'])->name('ctpl.get-vehicle-details');
 });

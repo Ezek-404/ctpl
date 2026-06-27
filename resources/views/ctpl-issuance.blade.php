@@ -35,13 +35,37 @@
 @section('content')
 <div class="w-full max-w-7xl mx-auto p-6">
     <div class="bg-[#161d30]/70 border border-zinc-800/80 rounded-lg p-8 shadow-2xl backdrop-blur-sm">
-        <h1 class="text-white text-sm font-black uppercase tracking-widest mb-8 border-b border-zinc-800/60 pb-4">CTPL Issuance Form</h1>
+        <div class="flex items-center justify-between border-b border-zinc-800/60 pb-4 mb-8">
+            @php
+                $container = "bg-zinc-900/50 rounded border border-zinc-800 overflow-hidden items-center flex";
+                $label = "bg-zinc-800/60 px-4 py-2 text-[9px] font-black text-zinc-300 uppercase tracking-widest border-r border-zinc-800 w-[120px] shrink-0";
+                $input = "bg-transparent px-4 py-2 text-[11px] text-white uppercase focus:outline-none w-full tracking-wider";
+            @endphp
+            
+            <div class="grid grid-cols-12 gap-x-4 mb-6">
+                <div class="col-span-3 {{ $container }}">
+                    <label class="{{ $label }}">Search By</label>
+                    <select id="search_type" class="{{ $input }} appearance-none cursor-pointer">
+                        <option value="plate_no">Plate Number</option>
+                        <option value="file_no">MV File No.</option>
+                        <option value="engine_no">Engine Number</option>
+                        <option value="chassis_no">Chassis Number</option>
+                    </select>
+                </div>
+                <div class="col-span-7 {{ $container }}">
+                    <input type="text" id="search_input" class="{{ $input }}" placeholder="ENTER VALUE TO SEARCH...">
+                </div>
+                <div class="col-span-2">
+                    <button id="btn_search" class="w-full h-full bg-emerald-600/20 border border-emerald-500/30 text-emerald-400 font-bold uppercase text-[10px] tracking-widest hover:bg-emerald-600/30 rounded">
+                        Search
+                    </button>
+                </div>
+            </div>
+        </div>
         
         <form action="{{ route('ctpl.store') }}" method="POST">
             @csrf
-            
-            <div class="grid grid-cols-12 gap-x-4 gap-y-3">
-                
+            <div class="grid grid-cols-12 gap-x-4 gap-y-3">       
                 @php
                     $container = "bg-zinc-900/50 rounded border border-zinc-800 overflow-hidden items-center flex";
                     $label = "bg-zinc-800/60 px-4 py-2 text-[9px] font-black text-zinc-300 uppercase tracking-widest border-r border-zinc-800 w-[120px] shrink-0";
@@ -51,39 +75,49 @@
                 {{-- Row 1: 2 Fields (6 + 6) --}}
                 <div class="col-span-6 {{ $container }}">
                     <label class="{{ $label }}">Assured</label>
-                    <input type="text" name="assured_name" class="{{ $input }}" required>
+                    <input type="text" name="assured" id="assured" class="{{ $input }}" required>
                 </div>
                 <div class="col-span-6 {{ $container }}">
                     <label class="{{ $label }}">Address</label>
-                    <input type="text" name="address" class="{{ $input }}" required>
+                    <input type="text" name="address" id="address" class="{{ $input }}" required>
                 </div>
 
                 {{-- Row 2: 4 Fields (3 + 3 + 3 + 3) --}}
                 {{-- Year Model: Changed to type="number" --}}
                 <div class="col-span-3 {{ $container }}">
                     <label class="{{ $label }}">Year Model</label>
-                    <input type="number" name="year_model" class="{{ $input }}" required>
+                    <input type="number" name="year_model" id="year_model" class="{{ $input }}" required>
                 </div>
                 <div class="col-span-3 {{ $container }}">
                     <label class="{{ $label }}">Make</label>
-                    <input type="text" name="make" class="{{ $input }}" required>
+                    <input type="text" name="make" id="make" class="{{ $input }}" required>
                 </div>
                 <div class="col-span-3 {{ $container }}">
                     <label class="{{ $label }}">Series</label>
-                    <input type="text" name="series" class="{{ $input }}" required>
+                    <input type="text" name="series" id="series" class="{{ $input }}" required>
                 </div>
                 <div class="col-span-3 {{ $container }}">
                     <label class="{{ $label }}">Color</label>
-                    <input type="text" name="color" class="{{ $input }}" required>
+                    <input type="text" name="color" id="color" class="{{ $input }}" required>
                 </div>
 
-                {{-- Row 3: 4 Fields (3 + 3 + 3 + 3) --}}
-                @foreach(['mv_file'=>'MV File No.', 'plate_number'=>'Plate No.', 'engine_number'=>'Engine No.', 'chassis_number'=>'Chassis No.'] as $n => $l)
+               {{-- Row 3: MV, Plate, Engine, Chassis --}}
                 <div class="col-span-3 {{ $container }}">
-                    <label class="{{ $label }}">{{ $l }}</label>
-                    <input type="text" name="{{ $n }}" class="{{ $input }}" required>
+                    <label class="{{ $label }}">MV File No.</label>
+                    <input type="text" name="file_no" id="file_no" class="{{ $input }}" required>
                 </div>
-                @endforeach
+                <div class="col-span-3 {{ $container }}">
+                    <label class="{{ $label }}">Plate No.</label>
+                    <input type="text" name="plate_no" id="plate_no" class="{{ $input }}" required>
+                </div>
+                <div class="col-span-3 {{ $container }}">
+                    <label class="{{ $label }}">Engine No.</label>
+                    <input type="text" name="engine_no" id="engine_no" class="{{ $input }}" required>
+                </div>
+                <div class="col-span-3 {{ $container }}">
+                    <label class="{{ $label }}">Chassis No.</label>
+                    <input type="text" name="chassis_no" id="chassis_no" class="{{ $input }}" required>
+                </div>
 
                 {{-- Row 4: 4 Fields (3 + 3 + 3 + 3) --}}
                 <div class="col-span-6 {{ $container }} relative">
@@ -152,7 +186,9 @@
         </form>
     </div>
 </div>
+
 <script>
+    // Siguraduhin na ang lahat ng ID dito ay exist sa iyong HTML file
     const denomSelect = document.getElementById('denomination');
     const cocInput = document.getElementById('coc_number');
     const policyInput = document.getElementById('policy_number');
@@ -160,76 +196,107 @@
     const iconError = document.getElementById('icon_error');
     const iconSuccess = document.getElementById('icon_success');
 
-    // Variable para sa debounce timer
     let debounceTimer;
 
+    // Helper function para i-fill ang inputs nang ligtas
+    const setFieldValue = (id, value) => {
+        const el = document.getElementById(id);
+        if (el) {
+            el.value = value || ''; 
+        } else {
+            console.warn(`Element with id "${id}" not found.`); // Debugging tool
+        }
+    };
+
     // 1. Enable/Disable at Reset logic
-    denomSelect.addEventListener('change', function() {
-        // I-clear ang values ng inputs tuwing nagpapalit ng denom
-        cocInput.value = '';
-        policyInput.value = '';
+    denomSelect?.addEventListener('change', function() {
+        if (cocInput) cocInput.value = '';
+        if (policyInput) policyInput.value = '';
+        [iconLoading, iconError, iconSuccess].forEach(i => i?.classList.add('hidden'));
 
-        // Itago lahat ng icons
-        iconLoading.classList.add('hidden');
-        iconError.classList.add('hidden');
-        iconSuccess.classList.add('hidden');
-
-        // I-reset ang timer kung sakaling may active pa
         clearTimeout(debounceTimer);
 
-        if (this.value !== "") {
-            cocInput.disabled = false;
-            policyInput.disabled = false;
-            cocInput.placeholder = "ENTER COC NO.";
-            policyInput.placeholder = "ENTER POLICY NO.";
-        } else {
-            cocInput.disabled = true;
-            policyInput.disabled = true;
-            cocInput.placeholder = "SELECT DENOM FIRST";
-            policyInput.placeholder = "SELECT DENOM FIRST";
-        }
+        const isDisabled = this.value === "";
+        if (cocInput) cocInput.disabled = isDisabled;
+        if (policyInput) policyInput.disabled = isDisabled;
+        
+        if (cocInput) cocInput.placeholder = isDisabled ? "SELECT DENOM FIRST" : "ENTER COC NO.";
+        if (policyInput) policyInput.placeholder = isDisabled ? "SELECT DENOM FIRST" : "ENTER POLICY NO.";
     });
 
-    // 2. AJAX Check logic na may 1-second delay (Debouncing)
-    cocInput.addEventListener('input', function() {
+    // 2. AJAX Check logic (Debounced)
+    cocInput?.addEventListener('input', function() {
         const val = this.value;
-        const denom = denomSelect.value;
+        const denom = denomSelect?.value;
         
-        // Linisin ang lumang timer tuwing may bagong input
         clearTimeout(debounceTimer);
 
         if (val.length < 3) {
-            iconLoading.classList.add('hidden');
-            iconError.classList.add('hidden');
-            iconSuccess.classList.add('hidden');
+            [iconLoading, iconError, iconSuccess].forEach(i => i?.classList.add('hidden'));
             return;
         }
 
-        // Ipakita ang loading icon agad habang naghihintay ng 1 second
-        iconLoading.classList.remove('hidden');
-        iconError.classList.add('hidden');
-        iconSuccess.classList.add('hidden');
+        iconLoading?.classList.remove('hidden');
+        [iconError, iconSuccess].forEach(i => i?.classList.add('hidden'));
 
-        // Mag-set ng bagong 1-second delay bago mag-fetch
         debounceTimer = setTimeout(async () => {
             try {
                 const response = await fetch(`{{ route('ctpl.check-coc') }}?coc_number=${val}&denomination=${denom}`);
                 const data = await response.json();
 
-                iconLoading.classList.add('hidden');
+                iconLoading?.classList.add('hidden');
                 
                 if (data.available) {
-                    iconSuccess.classList.remove('hidden');
-                    iconError.classList.add('hidden');
+                    iconSuccess?.classList.remove('hidden');
+                    iconError?.classList.add('hidden');
                 } else {
-                    iconSuccess.classList.add('hidden');
-                    iconError.classList.remove('hidden');
+                    iconSuccess?.classList.add('hidden');
+                    iconError?.classList.remove('hidden');
                 }
             } catch (error) {
-                iconLoading.classList.add('hidden');
-                iconError.classList.remove('hidden');
+                iconLoading?.classList.add('hidden');
+                iconError?.classList.remove('hidden');
             }
-        }, 800); // 1000ms = 1 second delay
+        }, 800);
+    });
+
+    // 3. Main Search Function
+    document.getElementById('btn_search')?.addEventListener('click', async function() {
+        const type = document.getElementById('search_type')?.value; 
+        const value = document.getElementById('search_input')?.value;
+
+        if (!value) return alert("Please enter a value to search.");
+
+        try {
+            const response = await fetch(`{{ route('ctpl.get-vehicle-details') }}?type=${type}&value=${value}`);
+            const data = await response.json();
+
+            if (data.success) {
+                const v = data.data;
+                
+                // MAPPING: Siguraduhin na ang key (v.xxx) ay match sa column name sa DB
+                // At ang id (e.g. 'plate_number') ay match sa id sa HTML
+                setFieldValue('assured', v.assured);
+                setFieldValue('address', v.address);
+                setFieldValue('year_model', v.year_model);
+                setFieldValue('make', v.make);
+                setFieldValue('series', v.series);
+                setFieldValue('denomination', v.denomination);
+                setFieldValue('color', v.color);
+                
+                // Dito madalas nagkakamali (check your database column names):
+                setFieldValue('plate_no', v.plate_no); 
+                setFieldValue('file_no', v.file_no);
+                setFieldValue('engine_no', v.engine_no);
+                setFieldValue('chassis_no', v.chassis_no);
+
+            } else {
+                alert("No record found.");
+            }
+        } catch (error) {
+            console.error('Error fetching data:', error);
+            alert("An error occurred while searching.");
+        }
     });
 </script>
 @endsection
