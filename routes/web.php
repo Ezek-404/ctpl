@@ -28,5 +28,6 @@ Route::middleware(['auth', 'prevent-back-history'])->group(function () {
     Route::get('/profile', [ProfileController::class, 'index'])->name('dashboard.profile');
     Route::put('/profile/update', [ProfileController::class, 'update'])->name('profile.update');
     Route::get('/dashboard/ctpl-issuance', [CtplIssuanceController::class, 'index'])->name('dashboard.ctpl-issuance');
+    Route::get('/ctpl/check-coc', [CtplIssuanceController::class, 'checkCoc'])->name('ctpl.check-coc');
     Route::post('/dashboard/ctpl-issuance', [CtplIssuanceController::class, 'store'])->name('ctpl.store');
 });
