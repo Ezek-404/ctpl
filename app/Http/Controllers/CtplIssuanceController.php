@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use App\Models\Coc;
 use App\Models\Vehicle;
 use App\Models\CtplIssuance;
@@ -78,6 +79,7 @@ class CtplIssuanceController extends Controller
             'data' => [
                 'assured'      => $latestIssuance->assured ?? '', // Null coalescing operator (mas malinis)
                 'address'      => $latestIssuance->address ?? '',
+                'vehicle_id'   => $vehicle->vehicle_id,
                 'year_model'   => $vehicle->year_model,
                 'make'         => $vehicle->make,
                 'series'       => $vehicle->series,
@@ -90,27 +92,83 @@ class CtplIssuanceController extends Controller
             ]
         ]);
     }
-    
-    public function store()
+
+    public function store(Request $request)
     {
-        $request->validate([
-            'assured_name'   => 'required|string|max:255',
-            'address'        => 'required|string|max:255',
-            'year_model'     => 'required|digits:4',
-            'make'           => 'required|string|max:50',
-            'series'         => 'required|string|max:50',
-            'color'          => 'required|string|max:50',
-            'mv_file'        => 'required|digits:15',
-            'plate_number'   => 'required|string|max:7',
-            'engine_number'  => 'required|string|max:50',
-            'chassis_number' => 'required|string|max:50',
-            'denomination'   => 'required|string',
-            'coc_number'     => 'required|numeric',
-            'policy_number'  => 'required|numeric',
-            'agent'          => 'required|string',
-            'amount'         => 'required|numeric',
+        // 1. I-validate ang input
+        $validatedData = $request->validate([
+            'assured'       => 'required|string',
+            'address'       => 'required|string',
+            'year_model'    => 'required|integer',
+            'make'          => 'required|string',
+            'series'        => 'required|string',
+            'color'         => 'required|string',
+            'file_no'       => 'required|string',
+            'plate_no'      => 'required|string',
+            'engine_no'     => 'required|string',
+            'chassis_no'    => 'required|string',
+            'denomination'  => 'required|string',
+            'coc_number'    => 'required|string',
+            'policy_number' => 'required|string',
+            'agent'         => 'required|string',
+            'amount'        => 'required|numeric',
         ]);
 
-       return redirect()->route('dashboard.ctpl-issuance')->with('success', 'Policy issued successfully!');
+        // 2. I-transform ang lahat ng text inputs sa UPPERCASE
+        $request->merge([
+            'assured'      => strtoupper($request->assured),
+            'address'      => strtoupper($request->address),
+            'make'         => strtoupper($request->make),
+            'series'       => strtoupper($request->series),
+            'color'        => strtoupper($request->color),
+            'file_no'      => strtoupper($request->file_no),
+            'plate_no'     => strtoupper($request->plate_no),
+            'engine_no'    => strtoupper($request->engine_no),
+            'chassis_no'   => strtoupper($request->chassis_no),
+            'agent'        => strtoupper($request->agent),
+        ]);
+
+        // 3. Database Transaction
+        DB::transaction(function () use ($request) {
+            // Handle Vehicle
+            $vehicle = Vehicle::updateOrCreate(
+                ['file_no' => $request->file_no],
+                [
+                    'year_model'   => $request->year_model,
+                    'make'         => $request->make,
+                    'series'       => $request->series,
+                    'color'        => $request->color,
+                    'plate_no'     => $request->plate_no,
+                    'engine_no'    => $request->engine_no,
+                    'chassis_no'   => $request->chassis_no,
+                    'denomination' => $request->denomination,
+                ]
+            );
+
+            // Handle COC
+            $coc = Coc::where('coc_no', $request->coc_number)
+                    ->where('coc_status', 'Available')
+                    ->firstOrFail();
+                
+            $coc->update(['coc_status' => 'Used']);
+
+            // Save Issuance
+            CtplIssuance::create([
+                'policy_no'  => $request->policy_number,
+                'assured'    => $request->assured,
+                'address'    => $request->address,
+                'agent'      => $request->agent,
+                'amount'     => $request->amount,
+                'coc_id'     => $coc->coc_id,
+                'vehicle_id' => $vehicle->vehicle_id,
+            ]);
+        });
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Transaction Successful!',
+            'data' => $issuance // Ibalik ang data para ma-display sa modal
+        ]);
     }
+    
 }

@@ -14,9 +14,8 @@ class Vehicle extends Model
 
     // Ilista ang mga columns na pwedeng i-mass assign
     protected $fillable = [
-        'assured', 'address', 'year_model', 'make', 'series', 
-        'denomination', 'color', 'plate_no', 'file_no', 
-        'engine_no', 'chassis_no'
+        'year_model', 'make', 'series', 'denomination', 'color', 
+        'plate_no', 'file_no', 'engine_no', 'chassis_no'
     ];
 
     // Disable timestamps kung wala kang created_at/updated_at sa table

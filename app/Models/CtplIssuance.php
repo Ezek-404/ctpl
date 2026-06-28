@@ -13,9 +13,7 @@ class CtplIssuance extends Model
     protected $primaryKey = 'transaction_id';
 
     // Payagan ang mass assignment para sa mga fields
-    protected $fillable = [
-        'policy_no', 'assured', 'address', 'agent', 'amount', 'coc_id', 'vehicle_id'
-    ];
+    protected $fillable = ['policy_no', 'assured', 'address', 'agent', 'amount', 'coc_id', 'vehicle_id'];
 
     // Relationship pabalik sa Vehicle
     public function vehicle()

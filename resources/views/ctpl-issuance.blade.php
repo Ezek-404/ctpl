@@ -19,6 +19,12 @@
         background-color: #18181b; /* color ng zinc-900 */
         color: #ffffff;
     }
+    #btn_issue_policy:disabled {
+        opacity: 0.3;          /* Magiging maputla */
+        cursor: not-allowed;   /* Magiging "no-entry" icon ang mouse */
+        border-color: #52525b; /* Zinc-700 color para mag-blend sa theme */
+        color: #a1a1aa;        /* Zinc-400 color para sa text */
+    }
 </style>
 @section('title_part1', 'CTPL')
 @section('title_part2', 'ISSUANCE')
@@ -120,7 +126,7 @@
                 </div>
 
                 {{-- Row 4: 4 Fields (3 + 3 + 3 + 3) --}}
-                <div class="col-span-6 {{ $container }} relative">
+                <div class="col-span-4 {{ $container }} relative">
                     <label class="{{ $label }}">Denomination</label>
                     <select name="denomination" id="denomination" class="{{ $input }} appearance-none cursor-pointer" required>
                         <option value="" disabled selected>-- Select DENOMINATION --</option>
@@ -154,7 +160,7 @@
                         <svg class="fill-current h-3 w-3" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"/></svg>
                     </div>
                 </div>
-                <div class="col-span-6 {{ $container }} relative">
+                <div class="col-span-4 {{ $container }} relative">
                     <label class="{{ $label }}">COC No.</label>
                     <input type="number" name="coc_number" id="coc_number" 
                         class="{{ $input }} pr-10 disabled:opacity-30 disabled:cursor-not-allowed" 
@@ -166,7 +172,7 @@
                         <span id="icon_success" class="hidden text-emerald-500">✅</span>
                     </div>
                 </div>
-                <div class="col-span-6 {{ $container }}">
+                <div class="col-span-4 {{ $container }}">
                     <label class="{{ $label }}">Policy No.</label>
                     <input type="number" name="policy_number" id="policy_number" 
                     class="{{ $input }} disabled:opacity-30 disabled:cursor-not-allowed" 
@@ -176,10 +182,14 @@
                     <label class="{{ $label }}">Agent</label>
                     <input type="text" name="agent" class="{{ $input }}" required>
                 </div>
+                <div class="col-span-6 {{ $container }}">
+                    <label class="{{ $label }}">Amount</label>
+                    <input type="text" name="amount" class="{{ $input }}" required>
+                </div>
             </div>
 
             <div class="mt-8 flex justify-end">
-                <button type="submit" class="bg-emerald-600/10 hover:bg-emerald-600/20 border border-emerald-500/30 text-emerald-400 px-8 py-3 rounded text-[10px] font-bold uppercase tracking-widest transition-all">
+                <button type="submit" id="btn_issue_policy" disabled class="bg-emerald-600/10 hover:bg-emerald-600/20 border border-emerald-500/30 text-emerald-400 px-8 py-3 rounded text-[10px] font-bold uppercase tracking-widest transition-all">
                     Issue Policy
                 </button>
             </div>
@@ -188,13 +198,13 @@
 </div>
 
 <script>
-    // Siguraduhin na ang lahat ng ID dito ay exist sa iyong HTML file
     const denomSelect = document.getElementById('denomination');
     const cocInput = document.getElementById('coc_number');
     const policyInput = document.getElementById('policy_number');
     const iconLoading = document.getElementById('icon_loading');
     const iconError = document.getElementById('icon_error');
     const iconSuccess = document.getElementById('icon_success');
+    const btnIssue = document.getElementById('btn_issue_policy');
 
     let debounceTimer;
 
@@ -203,10 +213,35 @@
         const el = document.getElementById(id);
         if (el) {
             el.value = value || ''; 
-        } else {
-            console.warn(`Element with id "${id}" not found.`); // Debugging tool
         }
     };
+
+    // --- NEW: Function para sa Form Validation ---
+    const validateForm = () => {
+        if (!btnIssue) return;
+
+        // Kunin ang lahat ng required inputs sa form
+        const requiredInputs = document.querySelectorAll('input[required], select[required]');
+        let allFilled = true;
+
+        requiredInputs.forEach(input => {
+            if (!input.value || input.value.trim() === '' || input.disabled) {
+                allFilled = false;
+            }
+        });
+
+        // Check kung valid ang COC (dapat ay may checkmark)
+        const isCocValid = !iconSuccess.classList.contains('hidden');
+
+        // I-apply ang state sa button
+        const isFormValid = allFilled && isCocValid;
+        btnIssue.disabled = !isFormValid;
+        btnIssue.style.opacity = isFormValid ? "1" : "0.3";
+        btnIssue.style.cursor = isFormValid ? "pointer" : "not-allowed";
+    };
+
+    // Initial state: Disable button sa umpisa
+    if (btnIssue) btnIssue.disabled = true;
 
     // 1. Enable/Disable at Reset logic
     denomSelect?.addEventListener('change', function() {
@@ -222,10 +257,13 @@
         
         if (cocInput) cocInput.placeholder = isDisabled ? "SELECT DENOM FIRST" : "ENTER COC NO.";
         if (policyInput) policyInput.placeholder = isDisabled ? "SELECT DENOM FIRST" : "ENTER POLICY NO.";
+        
+        validateForm(); // Re-validate
     });
 
     // 2. AJAX Check logic (Debounced)
     cocInput?.addEventListener('input', function() {
+        validateForm(); // Re-validate habang nagta-type
         const val = this.value;
         const denom = denomSelect?.value;
         
@@ -233,6 +271,7 @@
 
         if (val.length < 3) {
             [iconLoading, iconError, iconSuccess].forEach(i => i?.classList.add('hidden'));
+            validateForm();
             return;
         }
 
@@ -253,15 +292,17 @@
                     iconSuccess?.classList.add('hidden');
                     iconError?.classList.remove('hidden');
                 }
+                validateForm(); // Re-validate pagkatapos ng check
             } catch (error) {
                 iconLoading?.classList.add('hidden');
                 iconError?.classList.remove('hidden');
+                validateForm();
             }
-        }, 800);
+        }, 1200);
     });
 
     // 3. Main Search Function
-    document.getElementById('btn_search')?.addEventListener('click', async function() {
+    async function performSearch() {
         const type = document.getElementById('search_type')?.value; 
         const value = document.getElementById('search_input')?.value;
 
@@ -273,9 +314,6 @@
 
             if (data.success) {
                 const v = data.data;
-                
-                // MAPPING: Siguraduhin na ang key (v.xxx) ay match sa column name sa DB
-                // At ang id (e.g. 'plate_number') ay match sa id sa HTML
                 setFieldValue('assured', v.assured);
                 setFieldValue('address', v.address);
                 setFieldValue('year_model', v.year_model);
@@ -283,20 +321,35 @@
                 setFieldValue('series', v.series);
                 setFieldValue('denomination', v.denomination);
                 setFieldValue('color', v.color);
-                
-                // Dito madalas nagkakamali (check your database column names):
                 setFieldValue('plate_no', v.plate_no); 
                 setFieldValue('file_no', v.file_no);
                 setFieldValue('engine_no', v.engine_no);
                 setFieldValue('chassis_no', v.chassis_no);
 
+                if (denomSelect) denomSelect.dispatchEvent(new Event('change'));
+                
+                setTimeout(() => {
+                    if (cocInput && !cocInput.disabled) cocInput.focus();
+                }, 100);
+
+                validateForm(); // Re-validate pagkapuno ng fields
             } else {
                 alert("No record found.");
             }
         } catch (error) {
-            console.error('Error fetching data:', error);
             alert("An error occurred while searching.");
         }
+    }
+
+    // Event Listeners para sa validation sa bawat input
+    document.querySelectorAll('input, select').forEach(el => {
+        el.addEventListener('input', validateForm);
+        el.addEventListener('change', validateForm);
+    });
+
+    document.getElementById('btn_search')?.addEventListener('click', performSearch);
+    document.getElementById('search_input')?.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') { e.preventDefault(); performSearch(); }
     });
 </script>
 @endsection
