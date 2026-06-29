@@ -69,7 +69,7 @@
             </div>
         </div>
         
-        <form action="{{ route('ctpl.store') }}" method="POST">
+        <form id="issuanceForm" action="{{ route('ctpl.store') }}" method="POST">
             @csrf
             <div class="grid grid-cols-12 gap-x-4 gap-y-3">       
                 @php
@@ -201,110 +201,127 @@
     const denomSelect = document.getElementById('denomination');
     const cocInput = document.getElementById('coc_number');
     const policyInput = document.getElementById('policy_number');
+    const amountInput = document.getElementById('amount'); // Siguraduhing may id="amount"
     const iconLoading = document.getElementById('icon_loading');
     const iconError = document.getElementById('icon_error');
     const iconSuccess = document.getElementById('icon_success');
     const btnIssue = document.getElementById('btn_issue_policy');
+    const issuanceForm = document.getElementById('issuanceForm');
+    const searchInput = document.getElementById('search_input');
+    const btnSearch = document.getElementById('btn_search');
+    const assuredInput = document.getElementById('assured');
 
     let debounceTimer;
 
-    // Helper function para i-fill ang inputs nang ligtas
-    const setFieldValue = (id, value) => {
-        const el = document.getElementById(id);
-        if (el) {
-            el.value = value || ''; 
-        }
+    // Rules para sa Amount per Denomination
+    const getAmountRange = (denom) => {
+        const rules = {
+            'MC': { min: 550, max: 650 },
+            'PC': { min: 950, max: 1250 },
+            'TC': { min: 550, max: 550 },
+            'CV': { min: 1500, max: 2000 }
+        };
+        return rules[denom] || null;
     };
 
-    // --- NEW: Function para sa Form Validation ---
+    const setFieldValue = (id, value) => {
+        const el = document.getElementById(id);
+        if (el) el.value = value || '';
+    };
+
+    const validateAmount = () => {
+        if (!amountInput || !denomSelect.value) return true;
+        const range = getAmountRange(denomSelect.value);
+        if (!range) return true;
+        
+        const val = parseFloat(amountInput.value);
+        const isValid = !isNaN(val) && val >= range.min && val <= range.max;
+        
+        amountInput.style.borderColor = isValid ? "" : "red";
+        return isValid;
+    };
+
     const validateForm = () => {
         if (!btnIssue) return;
-
-        // Kunin ang lahat ng required inputs sa form
         const requiredInputs = document.querySelectorAll('input[required], select[required]');
-        let allFilled = true;
+        let allFilled = Array.from(requiredInputs).every(i => i.value.trim() !== '' && !i.disabled);
 
-        requiredInputs.forEach(input => {
-            if (!input.value || input.value.trim() === '' || input.disabled) {
-                allFilled = false;
-            }
-        });
-
-        // Check kung valid ang COC (dapat ay may checkmark)
-        const isCocValid = !iconSuccess.classList.contains('hidden');
-
-        // I-apply ang state sa button
-        const isFormValid = allFilled && isCocValid;
+        const isCocValid = iconSuccess && !iconSuccess.classList.contains('hidden');
+        const isAmountValid = validateAmount();
+        
+        const isFormValid = allFilled && isCocValid && isAmountValid;
+        
         btnIssue.disabled = !isFormValid;
         btnIssue.style.opacity = isFormValid ? "1" : "0.3";
         btnIssue.style.cursor = isFormValid ? "pointer" : "not-allowed";
     };
 
-    // Initial state: Disable button sa umpisa
-    if (btnIssue) btnIssue.disabled = true;
-
-    // 1. Enable/Disable at Reset logic
+    // 1. Reset logic + Placeholder update
     denomSelect?.addEventListener('change', function() {
         if (cocInput) cocInput.value = '';
         if (policyInput) policyInput.value = '';
+        if (amountInput) amountInput.value = '';
         [iconLoading, iconError, iconSuccess].forEach(i => i?.classList.add('hidden'));
 
-        clearTimeout(debounceTimer);
-
         const isDisabled = this.value === "";
-        if (cocInput) cocInput.disabled = isDisabled;
-        if (policyInput) policyInput.disabled = isDisabled;
         
-        if (cocInput) cocInput.placeholder = isDisabled ? "SELECT DENOM FIRST" : "ENTER COC NO.";
-        if (policyInput) policyInput.placeholder = isDisabled ? "SELECT DENOM FIRST" : "ENTER POLICY NO.";
+        if (cocInput) {
+            cocInput.disabled = isDisabled;
+            cocInput.placeholder = isDisabled ? "Select Denomination First" : "Enter COC No.";
+        }
+        if (policyInput) {
+            policyInput.disabled = isDisabled;
+            policyInput.placeholder = isDisabled ? "Select Denomination First" : "Enter Policy No.";
+        }
         
-        validateForm(); // Re-validate
+        if (!isDisabled) {
+            setTimeout(() => cocInput?.focus(), 100);
+        }
+        
+        validateForm();
     });
 
-    // 2. AJAX Check logic (Debounced)
+    // 2. AJAX Check COC
     cocInput?.addEventListener('input', function() {
-        validateForm(); // Re-validate habang nagta-type
         const val = this.value;
         const denom = denomSelect?.value;
         
         clearTimeout(debounceTimer);
+        [iconError, iconSuccess].forEach(i => i?.classList.add('hidden'));
 
         if (val.length < 3) {
-            [iconLoading, iconError, iconSuccess].forEach(i => i?.classList.add('hidden'));
+            iconLoading?.classList.add('hidden');
             validateForm();
             return;
         }
 
         iconLoading?.classList.remove('hidden');
-        [iconError, iconSuccess].forEach(i => i?.classList.add('hidden'));
 
         debounceTimer = setTimeout(async () => {
             try {
                 const response = await fetch(`{{ route('ctpl.check-coc') }}?coc_number=${val}&denomination=${denom}`);
                 const data = await response.json();
 
-                iconLoading?.classList.add('hidden');
-                
+                iconLoading?.classList.remove('hidden');
                 if (data.available) {
                     iconSuccess?.classList.remove('hidden');
-                    iconError?.classList.add('hidden');
+                    policyInput?.focus();
                 } else {
-                    iconSuccess?.classList.add('hidden');
                     iconError?.classList.remove('hidden');
                 }
-                validateForm(); // Re-validate pagkatapos ng check
+                validateForm();
             } catch (error) {
-                iconLoading?.classList.add('hidden');
+                iconLoading?.classList.remove('hidden');
                 iconError?.classList.remove('hidden');
                 validateForm();
             }
-        }, 1200);
+        }, 500);
     });
 
-    // 3. Main Search Function
+    // 3. Search Function
     async function performSearch() {
         const type = document.getElementById('search_type')?.value; 
-        const value = document.getElementById('search_input')?.value;
+        const value = searchInput?.value;
 
         if (!value) return alert("Please enter a value to search.");
 
@@ -314,25 +331,22 @@
 
             if (data.success) {
                 const v = data.data;
-                setFieldValue('assured', v.assured);
-                setFieldValue('address', v.address);
-                setFieldValue('year_model', v.year_model);
-                setFieldValue('make', v.make);
-                setFieldValue('series', v.series);
-                setFieldValue('denomination', v.denomination);
-                setFieldValue('color', v.color);
-                setFieldValue('plate_no', v.plate_no); 
-                setFieldValue('file_no', v.file_no);
-                setFieldValue('engine_no', v.engine_no);
-                setFieldValue('chassis_no', v.chassis_no);
-
-                if (denomSelect) denomSelect.dispatchEvent(new Event('change'));
+                Object.keys(v).forEach(key => setFieldValue(key, v[key]));
                 
+                denomSelect?.dispatchEvent(new Event('change'));
+                validateForm();
+                
+                // Smart Focus Logic: Lipat sa assured, o diretso sa COC kung puno na ang assured
                 setTimeout(() => {
-                    if (cocInput && !cocInput.disabled) cocInput.focus();
-                }, 100);
+                    if (assuredInput && assuredInput.value.trim() !== "") {
+                        cocInput?.focus();
+                    } else if (assuredInput) {
+                        assuredInput.focus();
+                    } else {
+                        denomSelect?.focus();
+                    }
+                }, 150);
 
-                validateForm(); // Re-validate pagkapuno ng fields
             } else {
                 alert("No record found.");
             }
@@ -341,15 +355,58 @@
         }
     }
 
-    // Event Listeners para sa validation sa bawat input
+    // 4. Submit with AJAX
+    btnIssue?.addEventListener('click', async (e) => {
+        e.preventDefault(); 
+        btnIssue.disabled = true;
+        btnIssue.innerText = "Processing...";
+
+        const formData = new FormData(issuanceForm);
+
+        try {
+            const response = await fetch('{{ route("ctpl.store") }}', {
+                method: 'POST',
+                body: formData,
+                headers: { 'X-CSRF-TOKEN': '{{ csrf_token() }}' }
+            });
+
+            const result = await response.json();
+
+            if (result.success) {
+                const id = result.data?.transaction_id;
+                if (id) {
+                    window.location.href = `/ctpl/print/${id}`;
+                } else {
+                    alert("Transaction successful, pero hindi mahanap ang transaction_id.");
+                    btnIssue.disabled = false;
+                    btnIssue.innerText = "Issue Policy";
+                }
+            } else {
+                alert("Error: " + (result.message || "Failed to process."));
+                btnIssue.disabled = false;
+                btnIssue.innerText = "Issue Policy";
+            }
+        } catch (error) {
+            alert("System error occurred.");
+            btnIssue.disabled = false;
+            btnIssue.innerText = "Issue Policy";
+        }
+    });
+
+    // Event Listeners para sa lahat ng inputs
     document.querySelectorAll('input, select').forEach(el => {
         el.addEventListener('input', validateForm);
         el.addEventListener('change', validateForm);
     });
 
-    document.getElementById('btn_search')?.addEventListener('click', performSearch);
-    document.getElementById('search_input')?.addEventListener('keypress', (e) => {
-        if (e.key === 'Enter') { e.preventDefault(); performSearch(); }
+    btnSearch?.addEventListener('click', performSearch);
+
+    // Enter key para sa Search
+    searchInput?.addEventListener('keypress', function (e) {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            performSearch();
+        }
     });
 </script>
 @endsection

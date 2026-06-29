@@ -15,7 +15,11 @@ class CtplIssuance extends Model
     // Payagan ang mass assignment para sa mga fields
     protected $fillable = ['policy_no', 'assured', 'address', 'agent', 'amount', 'coc_id', 'vehicle_id'];
 
-    // Relationship pabalik sa Vehicle
+    public function coc()
+    {
+        return $this->belongsTo(Coc::class, 'coc_id', 'coc_id'); // Siguraduhin na ang foreign key at local key ay tama
+    }
+
     public function vehicle()
     {
         return $this->belongsTo(Vehicle::class, 'vehicle_id', 'vehicle_id');

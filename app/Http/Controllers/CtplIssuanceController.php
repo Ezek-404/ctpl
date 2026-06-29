@@ -114,23 +114,24 @@ class CtplIssuanceController extends Controller
             'amount'        => 'required|numeric',
         ]);
 
-        // 2. I-transform ang lahat ng text inputs sa UPPERCASE
+        // 2. I-transform ang text inputs sa UPPERCASE
         $request->merge([
-            'assured'      => strtoupper($request->assured),
-            'address'      => strtoupper($request->address),
-            'make'         => strtoupper($request->make),
-            'series'       => strtoupper($request->series),
-            'color'        => strtoupper($request->color),
-            'file_no'      => strtoupper($request->file_no),
-            'plate_no'     => strtoupper($request->plate_no),
-            'engine_no'    => strtoupper($request->engine_no),
-            'chassis_no'   => strtoupper($request->chassis_no),
-            'agent'        => strtoupper($request->agent),
+            'assured'    => strtoupper($request->assured),
+            'address'    => strtoupper($request->address),
+            'make'       => strtoupper($request->make),
+            'series'     => strtoupper($request->series),
+            'color'      => strtoupper($request->color),
+            'file_no'    => strtoupper($request->file_no),
+            'plate_no'   => strtoupper($request->plate_no),
+            'engine_no'  => strtoupper($request->engine_no),
+            'chassis_no' => strtoupper($request->chassis_no),
+            'agent'      => strtoupper($request->agent),
         ]);
 
-        // 3. Database Transaction
-        DB::transaction(function () use ($request) {
-            // Handle Vehicle
+        try {
+        // I-return ang resulta ng transaction direkta
+        $issuance = DB::transaction(function () use ($request) {
+            
             $vehicle = Vehicle::updateOrCreate(
                 ['file_no' => $request->file_no],
                 [
@@ -145,15 +146,13 @@ class CtplIssuanceController extends Controller
                 ]
             );
 
-            // Handle COC
             $coc = Coc::where('coc_no', $request->coc_number)
-                    ->where('coc_status', 'Available')
-                    ->firstOrFail();
-                
+                      ->where('coc_status', 'Available')
+                      ->firstOrFail();
+            
             $coc->update(['coc_status' => 'Used']);
 
-            // Save Issuance
-            CtplIssuance::create([
+            return CtplIssuance::create([
                 'policy_no'  => $request->policy_number,
                 'assured'    => $request->assured,
                 'address'    => $request->address,
@@ -167,8 +166,25 @@ class CtplIssuanceController extends Controller
         return response()->json([
             'success' => true,
             'message' => 'Transaction Successful!',
-            'data' => $issuance // Ibalik ang data para ma-display sa modal
+            'data'    => $issuance
         ]);
+
+    } catch (\Exception $e) {
+        // Kung may error, ibalik ang error message
+        return response()->json([
+            'success' => false,
+            'message' => 'Error: ' . $e->getMessage()
+        ], 500);
+    }
+    }
+
+    public function print($id)
+    {
+        $issuance = CtplIssuance::with(['vehicle', 'coc'])->findOrFail($id);
+
+        $view = 'print.pc'; 
+
+        return view($view, compact('issuance'));
     }
     
 }
