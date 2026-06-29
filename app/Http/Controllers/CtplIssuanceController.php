@@ -178,13 +178,11 @@ class CtplIssuanceController extends Controller
     }
     }
 
-    public function print($id)
-    {
-        $issuance = CtplIssuance::with(['vehicle', 'coc'])->findOrFail($id);
-
-        $view = 'print.pc'; 
-
-        return view($view, compact('issuance'));
+    public function print($id) {
+        // Siguraduhin na kasama ang vehicle relationship
+        $issuance = CtplIssuance::with('vehicle')->findOrFail($id); 
+        
+        return view('print.pc', compact('issuance'));
     }
     
 }

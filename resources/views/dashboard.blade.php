@@ -110,11 +110,6 @@
 
             </div>
         </div>
-
-        <!-- System Label Footer -->
-        <div class="absolute bottom-6 text-center w-full text-[9px] tracking-widest uppercase text-zinc-500 font-mono">
-            Management Information Division
-        </div>
     </div>
 
 </body>
