@@ -179,10 +179,25 @@ class CtplIssuanceController extends Controller
     }
 
     public function print($id) {
-        // Siguraduhin na kasama ang vehicle relationship
-        $issuance = CtplIssuance::with('vehicle')->findOrFail($id); 
+        $issuance = CtplIssuance::with('vehicle')->findOrFail($id);
         
-        return view('print.pc', compact('issuance'));
+        // Gawin nating lowercase ang database value para sigurado
+        $type = strtolower(trim($issuance->vehicle->denomination)); 
+
+        $view = match ($type) {
+            'mc', 'mtc' => 'print.mc',
+            
+            'car', 'passenger car', 'hatchback', 'sedan', 'utility vehicle', 
+            'suv', 'coupe', 'subcompact' => 'print.pc',
+            
+            'tricycle' => 'print.tc',
+            
+            'truck', 'trailer' => 'print.cv',
+            
+            default => 'print.pc',
+        };
+
+        return view($view, compact('issuance'));
     }
     
 }
