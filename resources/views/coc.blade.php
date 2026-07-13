@@ -13,17 +13,16 @@
 @endsection
 
 @section('content')
-    <div class="w-full max-w-7xl flex flex-col items-stretch">
-
+    <div class="w-full max-w-7xl flex flex-col items-stretch h-[calc(100vh-150px)]">
         @if (session('success'))
             <div class="mb-4 p-4 bg-emerald-900/20 border border-emerald-500/30 rounded text-emerald-400 text-xs font-bold uppercase tracking-widest text-center">
                 {{ session('success') }}
             </div>
         @endif
         
-        <div class="w-full bg-[#161d30]/70 border border-zinc-800/80 rounded-lg p-6 shadow-2xl backdrop-blur-sm">
+        <div class="w-full bg-[#161d30]/70 border border-zinc-800/80 rounded-lg p-6 shadow-2xl backdrop-blur-sm flex flex-col flex-grow overflow-hidden">
             
-            <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 pb-4 border-b border-zinc-800/60 mb-4">
+            <div class="flex-shrink-0 flex flex-col md:flex-row items-start md:items-center justify-between gap-4 pb-4 border-b border-zinc-800/60 mb-4">
                 <div>
                     <h3 class="text-zinc-200 text-xs font-bold tracking-wider uppercase">Active Allocations</h3>
                     <p class="text-zinc-500 text-[9px] uppercase mt-0.5 tracking-wider">Displaying registry database information</p>
@@ -39,7 +38,7 @@
                 </div>
             </div>
 
-            <div class="w-full overflow-x-auto rounded border border-zinc-900/60 bg-zinc-950/20 max-h-[calc(100vh-280px)] overflow-y-auto custom-scrollbar">
+            <div class="flex-grow overflow-y-auto custom-scrollbar rounded border border-zinc-900/60 bg-zinc-950/20">
                 <table class="w-full text-left border-collapse min-w-[800px]">
                     <thead class="sticky top-0 z-20 bg-zinc-950/95 shadow-[0_1px_0_0_rgba(24,24,27,1)]">
                         <tr>
