@@ -121,14 +121,18 @@ class CtplIssuanceController extends Controller
         $validatedData['make']       = strtoupper($validatedData['make']);
         $validatedData['series']     = strtoupper($validatedData['series']);
         $validatedData['color']      = strtoupper($validatedData['color']);
-        $validatedData['file_no']     = strtoupper($validatedData['file_no']);
-        $validatedData['plate_no']    = strtoupper($validatedData['plate_no']);
-        $validatedData['engine_no']   = strtoupper($validatedData['engine_no']);
-        $validatedData['chassis_no']  = strtoupper($validatedData['chassis_no']);
-        $validatedData['agent']       = strtoupper($validatedData['agent']);
+        $validatedData['file_no']    = strtoupper($validatedData['file_no']);
+        $validatedData['plate_no']   = strtoupper($validatedData['plate_no']);
+        $validatedData['engine_no']  = strtoupper($validatedData['engine_no']);
+        $validatedData['chassis_no'] = strtoupper($validatedData['chassis_no']);
+        $validatedData['agent']      = strtoupper($validatedData['agent']);
 
         try {
-            $issuance = DB::transaction(function () use ($validatedData) {
+            // Gumawa ng ligtas na numeric Transaction ID na kasya sa standard Integer range (7 to 9 digits)
+            // Ito ay upang maiwasan ang auto-conversion sa 0 sanhi ng data size overflow
+            $generatedTransactionId = str_pad(rand(1000000, 999999999), 9, '0', STR_PAD_LEFT);
+
+            $issuance = DB::transaction(function () use ($validatedData, $generatedTransactionId) {
                 
                 // Hanapin o i-update ang Vehicle record
                 $vehicle = Vehicle::updateOrCreate(
@@ -152,10 +156,6 @@ class CtplIssuanceController extends Controller
                 
                 $coc->update(['coc_status' => 'Used']);
 
-                // 3. GUMAWA NG TRANSACTION ID (Halimbawa: TXN-20260710-XYZ12)
-                // Kung wala kang hiwalay na transactions table, gumawa ng unique reference code.
-                $generatedTransactionId = 'TXN-' . date('Ymd') . '-' . strtoupper(Str::random(5));
-
                 // I-save ang CtplIssuance na may kasamang generated transaction id
                 return CtplIssuance::create([
                     'policy_no'      => $validatedData['policy_number'],
@@ -165,14 +165,17 @@ class CtplIssuanceController extends Controller
                     'amount'         => $validatedData['amount'],
                     'coc_id'         => $coc->coc_id,
                     'vehicle_id'     => $vehicle->vehicle_id,
-                    'transaction_id' => $generatedTransactionId, // <-- Siguraduhing may laman na ito ngayon!
+                    'transaction_id' => $generatedTransactionId, 
                 ]);
             });
 
             return response()->json([
                 'success' => true,
-                'message' => 'Transaction Successful!',
-                'data'    => $issuance
+                'message' => 'Transaction successful!',
+                'data' => [
+                    // Direktang ibalik ang string variable para makasiguro na hindi ito magiging 0 sa AJAX response
+                    'transaction_id' => $generatedTransactionId 
+                ]
             ]);
 
         } catch (\Exception $e) {
@@ -184,10 +187,13 @@ class CtplIssuanceController extends Controller
     }
 
     public function print($id) {
-        $issuance = CtplIssuance::with('vehicle')->findOrFail($id);
-        
+        // Isama ang 'coc' sa eager loading at maghanap gamit ang 'transaction_id'
+        $issuance = CtplIssuance::with(['vehicle', 'coc'])
+            ->where('transaction_id', $id)
+            ->firstOrFail();
+            
         // Gawin nating lowercase ang database value para sigurado
-        $type = strtolower(trim($issuance->vehicle->denomination)); 
+        $type = strtolower(trim($issuance->vehicle->denomination ?? '')); 
 
         $view = match ($type) {
             'mc', 'mtc' => 'print.mc',

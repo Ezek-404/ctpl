@@ -22,9 +22,14 @@ class CtplIssuance extends Model
         'vehicle_id'
     ];
 
+    protected $casts = [
+        'transaction_id' => 'string',
+    ];
+
     public function coc()
     {
-        return $this->belongsTo(Coc::class, 'coc_id', 'coc_id'); 
+        // Kung ang primary key ng Coc model ay 'coc_id'
+        return $this->belongsTo(Coc::class, 'coc_id', 'coc_id');
     }
 
     public function vehicle()

@@ -295,14 +295,14 @@
             return;
         }
 
-        iconLoading?.classList.remove('hidden');
+        iconLoading?.classList.remove('hidden'); // Ipakita ang loading bago mag-fetch
 
         debounceTimer = setTimeout(async () => {
             try {
                 const response = await fetch(`{{ route('ctpl.check-coc') }}?coc_number=${val}&denomination=${denom}`);
                 const data = await response.json();
 
-                iconLoading?.classList.remove('hidden');
+                iconLoading?.classList.add('hidden'); // <-- BINAGO: Itago na ang loading dito dahil tapos na ang request
                 if (data.available) {
                     iconSuccess?.classList.remove('hidden');
                     policyInput?.focus();
@@ -311,7 +311,7 @@
                 }
                 validateForm();
             } catch (error) {
-                iconLoading?.classList.remove('hidden');
+                iconLoading?.classList.add('hidden'); // <-- BINAGO: Itago rin ang loading kung nagka-error
                 iconError?.classList.remove('hidden');
                 validateForm();
             }
@@ -373,21 +373,30 @@
             const result = await response.json();
 
             if (result.success) {
-                const id = result.data?.transaction_id;
+                // Ligtas na pagkuha: titingin sa result.data.transaction_id at mag-fa-fallback sa result.transaction_id
+                const id = result.data?.transaction_id || result.transaction_id;
+                
                 if (id) {
                     window.location.href = `/ctpl/print/${id}`;
                 } else {
-                    alert("Transaction successful, pero hindi mahanap ang transaction_id.");
+                    // Debugger log para makita ang structure sa DevTools Console (F12) kung sakaling mawala ang ID
+                    console.log("Server response metadata missing transaction_id:", result);
+                    alert("Transaction successful, pero hindi mahanap ang transaction_id sa response.");
+                    
                     btnIssue.disabled = false;
                     btnIssue.innerText = "Issue Policy";
                 }
             } else {
+                console.log("Server rejected transaction:", result);
                 alert("Error: " + (result.message || "Failed to process."));
+                
                 btnIssue.disabled = false;
                 btnIssue.innerText = "Issue Policy";
             }
         } catch (error) {
-            alert("System error occurred.");
+            console.error("AJAX Fetch Error:", error);
+            alert("System error occurred. Check browser console for details.");
+            
             btnIssue.disabled = false;
             btnIssue.innerText = "Issue Policy";
         }
