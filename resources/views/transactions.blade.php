@@ -45,13 +45,13 @@
                     <tbody id="tx-table-body" class="divide-y divide-zinc-900/40 text-zinc-300">
                         @forelse($transactions as $tx)
                         <tr>
-                            <td class="px-6 py-4 text-[10px] font-bold">{{ $tx->transaction_id }}</td>
+                            <td class="px-6 py-4 text-[10px] font-bold">{{ $tx->unique_tx_id }}</td>
                             <td class="px-6 py-4 text-[10px]">{{ $tx->assured }}</td>
                             <td class="px-6 py-4 text-[10px]">{{ $tx->plate_no }}</td> <!-- Ito ay manggagaling sa vehicles table -->
                             <td class="px-6 py-4 text-[10px]">{{ $tx->coc_no }}</td>   <!-- Ito ay manggagaling sa coc_table -->
                             <td class="px-6 py-4 text-[10px]">{{ \Carbon\Carbon::parse($tx->created_at)->format('M d, Y') }}</td>
                             <td class="px-6 py-4 text-right">
-                                <a href="{{ route('ctpl.print', $tx->transaction_id) }}" class="text-emerald-500 hover:text-emerald-300 text-[10px] font-bold uppercase">View</a>
+                                <a href="{{ route('ctpl.print', ['id' => $tx->unique_tx_id]) }}" class="text-emerald-500 hover:text-emerald-300 text-[10px] font-bold uppercase">View</a>
                             </td>
                         </tr>
                         @empty

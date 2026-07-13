@@ -13,7 +13,9 @@ class TransactionController extends Controller
             ->join('coc_table', 'ctpl_issuances.coc_id', '=', 'coc_table.coc_id')
             ->join('vehicles', 'ctpl_issuances.vehicle_id', '=', 'vehicles.vehicle_id')
             ->select(
-                'ctpl_issuances.*', 
+                'ctpl_issuances.transaction_id as unique_tx_id', // <-- Explicitly distinct alias
+                'ctpl_issuances.assured',
+                'ctpl_issuances.created_at', 
                 'coc_table.coc_no', 
                 'vehicles.plate_no' 
             )
