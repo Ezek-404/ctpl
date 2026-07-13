@@ -83,7 +83,7 @@
                 </a>
 
                 <!-- Item 4: Saved Transactions -->
-                <a href="#" class="group flex flex-col items-center text-center p-4 rounded-xl hover:bg-slate-800/40 border border-transparent hover:border-slate-700/50 transition-all duration-200">
+                <a href="{{ route('dashboard.transactions') }}" class="group flex flex-col items-center text-center p-4 rounded-xl hover:bg-slate-800/40 border border-transparent hover:border-slate-700/50 transition-all duration-200">
                     <div class="w-12 h-12 rounded-full border border-zinc-700 flex items-center justify-center text-zinc-400 group-hover:text-emerald-400 group-hover:border-emerald-500/50 transition-colors">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
                     </div>

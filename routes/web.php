@@ -5,6 +5,7 @@ use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\CocController;
 use App\Http\Controllers\CtplIssuanceController;
+use App\Http\Controllers\TransactionController;
 use Illuminate\Support\Facades\Route;
 
 // Guest Routes (Accessible only if NOT logged in)
@@ -32,4 +33,5 @@ Route::middleware(['auth', 'prevent-back-history'])->group(function () {
     Route::post('/dashboard/ctpl-issuance', [CtplIssuanceController::class, 'store'])->name('ctpl.store');
     Route::get('/ctpl/get-vehicle-details', [App\Http\Controllers\CtplIssuanceController::class, 'getVehicleDetails'])->name('ctpl.get-vehicle-details');
     Route::get('/ctpl/print/{id}', [CtplIssuanceController::class, 'print'])->name('ctpl.print');
+    Route::get('/dashboard/transactions', [TransactionController::class, 'index'])->name('dashboard.transactions');
 });
