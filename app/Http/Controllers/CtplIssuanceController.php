@@ -7,6 +7,7 @@ use Illuminate\Support\Facades\DB;
 use App\Models\Coc;
 use App\Models\Vehicle;
 use App\Models\CtplIssuance;
+use Illuminate\Support\Str;
 class CtplIssuanceController extends Controller
 {
     public function index()
@@ -114,75 +115,85 @@ class CtplIssuanceController extends Controller
             'amount'        => 'required|numeric',
         ]);
 
-        // 2. I-transform ang text inputs sa UPPERCASE
-        $request->merge([
-            'assured'    => strtoupper($request->assured),
-            'address'    => strtoupper($request->address),
-            'make'       => strtoupper($request->make),
-            'series'     => strtoupper($request->series),
-            'color'      => strtoupper($request->color),
-            'file_no'    => strtoupper($request->file_no),
-            'plate_no'   => strtoupper($request->plate_no),
-            'engine_no'  => strtoupper($request->engine_no),
-            'chassis_no' => strtoupper($request->chassis_no),
-            'agent'      => strtoupper($request->agent),
-        ]);
+        // 2. I-transform ang text inputs sa UPPERCASE gamit ang validated array
+        $validatedData['assured']    = strtoupper($validatedData['assured']);
+        $validatedData['address']    = strtoupper($validatedData['address']);
+        $validatedData['make']       = strtoupper($validatedData['make']);
+        $validatedData['series']     = strtoupper($validatedData['series']);
+        $validatedData['color']      = strtoupper($validatedData['color']);
+        $validatedData['file_no']    = strtoupper($validatedData['file_no']);
+        $validatedData['plate_no']   = strtoupper($validatedData['plate_no']);
+        $validatedData['engine_no']  = strtoupper($validatedData['engine_no']);
+        $validatedData['chassis_no'] = strtoupper($validatedData['chassis_no']);
+        $validatedData['agent']      = strtoupper($validatedData['agent']);
 
         try {
-        // I-return ang resulta ng transaction direkta
-        $issuance = DB::transaction(function () use ($request) {
-            
-            $vehicle = Vehicle::updateOrCreate(
-                ['file_no' => $request->file_no],
-                [
-                    'year_model'   => $request->year_model,
-                    'make'         => $request->make,
-                    'series'       => $request->series,
-                    'color'        => $request->color,
-                    'plate_no'     => $request->plate_no,
-                    'engine_no'    => $request->engine_no,
-                    'chassis_no'   => $request->chassis_no,
-                    'denomination' => $request->denomination,
+            // Gumawa ng ligtas na numeric Transaction ID na kasya sa standard Integer range (7 to 9 digits)
+            // Ito ay upang maiwasan ang auto-conversion sa 0 sanhi ng data size overflow
+            $generatedTransactionId = str_pad(rand(1000000, 999999999), 9, '0', STR_PAD_LEFT);
+
+            $issuance = DB::transaction(function () use ($validatedData, $generatedTransactionId) {
+                
+                // Hanapin o i-update ang Vehicle record
+                $vehicle = Vehicle::updateOrCreate(
+                    ['file_no' => $validatedData['file_no']],
+                    [
+                        'year_model'   => $validatedData['year_model'],
+                        'make'         => $validatedData['make'],
+                        'series'       => $validatedData['series'],
+                        'color'        => $validatedData['color'],
+                        'plate_no'     => $validatedData['plate_no'],
+                        'engine_no'    => $validatedData['engine_no'],
+                        'chassis_no'   => $validatedData['chassis_no'],
+                        'denomination' => $validatedData['denomination'],
+                    ]
+                );
+
+                // Suriin kung ang COC ay available
+                $coc = Coc::where('coc_no', $validatedData['coc_number'])
+                        ->where('coc_status', 'Available')
+                        ->firstOrFail();
+                
+                $coc->update(['coc_status' => 'Used']);
+
+                // I-save ang CtplIssuance na may kasamang generated transaction id
+                return CtplIssuance::create([
+                    'policy_no'      => $validatedData['policy_number'],
+                    'assured'        => $validatedData['assured'],
+                    'address'        => $validatedData['address'],
+                    'agent'          => $validatedData['agent'],
+                    'amount'         => $validatedData['amount'],
+                    'coc_id'         => $coc->coc_id,
+                    'vehicle_id'     => $vehicle->vehicle_id,
+                    'transaction_id' => $generatedTransactionId, 
+                ]);
+            });
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Transaction successful!',
+                'data' => [
+                    // Direktang ibalik ang string variable para makasiguro na hindi ito magiging 0 sa AJAX response
+                    'transaction_id' => $generatedTransactionId 
                 ]
-            );
-
-            $coc = Coc::where('coc_no', $request->coc_number)
-                      ->where('coc_status', 'Available')
-                      ->firstOrFail();
-            
-            $coc->update(['coc_status' => 'Used']);
-
-            return CtplIssuance::create([
-                'policy_no'  => $request->policy_number,
-                'assured'    => $request->assured,
-                'address'    => $request->address,
-                'agent'      => $request->agent,
-                'amount'     => $request->amount,
-                'coc_id'     => $coc->coc_id,
-                'vehicle_id' => $vehicle->vehicle_id,
             ]);
-        });
 
-        return response()->json([
-            'success' => true,
-            'message' => 'Transaction Successful!',
-            'data'    => $issuance
-        ]);
-
-    } catch (\Exception $e) {
-        // Kung may error, ibalik ang error message
-        return response()->json([
-            'success' => false,
-            'message' => 'Error: ' . $e->getMessage()
-        ], 500);
-    }
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Error: ' . $e->getMessage()
+            ], 500);
+        }
     }
 
     public function print($id) {
-        $issuance = CtplIssuance::with('vehicle')->findOrFail($id);
-        
+        // Isama ang 'coc' sa eager loading at maghanap gamit ang 'transaction_id'
+        $issuance = CtplIssuance::with(['vehicle', 'coc'])
+            ->where('transaction_id', $id)
+            ->firstOrFail();
+            
         // Gawin nating lowercase ang database value para sigurado
-        $type = strtolower(trim($issuance->vehicle->denomination)); 
+        $type = strtolower(trim($issuance->vehicle->denomination ?? '')); 
 
         $view = match ($type) {
             'mc', 'mtc' => 'print.mc',

@@ -6,18 +6,30 @@ use Illuminate\Database\Eloquent\Model;
 
 class CtplIssuance extends Model
 {
-    // Tukuyin ang table name kung hindi ito ang default (default: ctpl_issuances)
+
     protected $table = 'ctpl_issuances';
     
-    // Tukuyin ang primary key
     protected $primaryKey = 'transaction_id';
 
-    // Payagan ang mass assignment para sa mga fields
-    protected $fillable = ['policy_no', 'assured', 'address', 'agent', 'amount', 'coc_id', 'vehicle_id'];
+    protected $fillable = [
+        'transaction_id', 
+        'policy_no', 
+        'assured', 
+        'address', 
+        'agent', 
+        'amount', 
+        'coc_id', 
+        'vehicle_id'
+    ];
+
+    protected $casts = [
+        'transaction_id' => 'string',
+    ];
 
     public function coc()
     {
-        return $this->belongsTo(Coc::class, 'coc_id', 'coc_id'); // Siguraduhin na ang foreign key at local key ay tama
+        // Kung ang primary key ng Coc model ay 'coc_id'
+        return $this->belongsTo(Coc::class, 'coc_id', 'coc_id');
     }
 
     public function vehicle()
