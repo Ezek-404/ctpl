@@ -17,7 +17,6 @@
         
         <div class="w-full bg-[#161d30]/70 border border-zinc-800/80 rounded-lg p-6 shadow-2xl backdrop-blur-sm flex flex-col flex-grow overflow-hidden">
             
-            <!-- Header Section -->
             <div class="flex-shrink-0 flex items-center justify-between pb-4 border-b border-zinc-800/60 mb-4">
                 <div>
                     <h3 class="text-zinc-200 text-xs font-bold tracking-wider uppercase">Transaction History</h3>
@@ -29,7 +28,6 @@
                 </div>
             </div>
 
-            <!-- Table Section -->
             <div class="flex-grow overflow-y-auto custom-scrollbar rounded border border-zinc-900/60 bg-zinc-950/20">
                 <table class="w-full text-left border-collapse min-w-[800px]">
                     <thead class="sticky top-0 z-20 bg-zinc-950/95 shadow-[0_1px_0_0_rgba(24,24,27,1)]">
@@ -43,22 +41,7 @@
                         </tr>
                     </thead>
                     <tbody id="tx-table-body" class="divide-y divide-zinc-900/40 text-zinc-300">
-                        @forelse($transactions as $tx)
-                        <tr>
-                            <td class="px-6 py-4 text-[10px] font-bold">{{ $tx->unique_tx_id }}</td>
-                            <td class="px-6 py-4 text-[10px]">{{ $tx->assured }}</td>
-                            <td class="px-6 py-4 text-[10px]">{{ $tx->plate_no }}</td> <!-- Ito ay manggagaling sa vehicles table -->
-                            <td class="px-6 py-4 text-[10px]">{{ $tx->coc_no }}</td>   <!-- Ito ay manggagaling sa coc_table -->
-                            <td class="px-6 py-4 text-[10px]">{{ \Carbon\Carbon::parse($tx->created_at)->format('M d, Y') }}</td>
-                            <td class="px-6 py-4 text-right">
-                                <a href="{{ route('ctpl.print', ['id' => $tx->unique_tx_id]) }}" class="text-emerald-500 hover:text-emerald-300 text-[10px] font-bold uppercase">View</a>
-                            </td>
-                        </tr>
-                        @empty
-                        <tr>
-                            <td colspan="6" class="px-6 py-10 text-center text-[10px] text-zinc-600 uppercase font-bold tracking-widest">No transactions found</td>
-                        </tr>
-                        @endforelse
+                        @include('partials.transactions_table')
                     </tbody>
                 </table>
             </div>
@@ -66,10 +49,49 @@
     </div>
 
     <script>
-        // NAVIGATION PROTECTION: Pigilan ang pagbalik sa page na ito 
-        // kapag galing sa ibang section gamit ang back button
         document.addEventListener('DOMContentLoaded', function() {
             window.history.replaceState(null, null, window.location.href);
+
+            const searchInput = document.getElementById('tx-search');
+            const tableBody = document.getElementById('tx-table-body');
+            let debounceTimer;
+
+            // Fetch dynamic records via AJAX
+            function fetchTransactions(page = 1, searchQuery = '') {
+                const url = `{{ route('dashboard.transactions') }}?page=${page}&search=${encodeURIComponent(searchQuery)}`;
+                
+                fetch(url, {
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                })
+                .then(response => response.text())
+                .then(html => {
+                    tableBody.innerHTML = html;
+                })
+                .catch(error => console.error('Error loading transaction data:', error));
+            }
+
+            // Real-time search with a 300ms debounce to prevent database spamming
+            searchInput.addEventListener('input', function() {
+                clearTimeout(debounceTimer);
+                const query = this.value;
+                debounceTimer = setTimeout(() => {
+                    fetchTransactions(1, query);
+                }, 300);
+            });
+
+            // Handle Pagination Link clicks dynamically
+            tableBody.addEventListener('click', function(e) {
+                const anchor = e.target.closest('.custom-pagination a');
+                if (anchor) {
+                    e.preventDefault();
+                    const urlParams = new URLSearchParams(new URL(anchor.href).search);
+                    const page = urlParams.get('page') || 1;
+                    const query = searchInput.value;
+                    fetchTransactions(page, query);
+                }
+            });
         });
     </script>
 @endsection
